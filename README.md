@@ -7,6 +7,7 @@ Stay Tuned For More Info!
 
 ## Developers
 Guy Shalom
+
 Yonatan Shabot
 
 ## Roadmap
