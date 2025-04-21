@@ -1,4 +1,4 @@
-Possible mechs:
+# Possible mechs:
     - Streching to become a ramp/bridge.
     - When scared, become a bouncy cat *boing*.
     - Cat doors between levels.
