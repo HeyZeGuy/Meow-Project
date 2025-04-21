@@ -3,8 +3,9 @@
     - When scared, become a bouncy cat *boing*.
     - Cat doors between levels.
     - Bee stings make you float (like blue yoshi).
-    - Sprint and roll.
+    - Bounce on floating cat.
     - Tarzan using cat's tail.
+    - Sprint and roll.
     - WREAK HAVOC setions 
         1. Mom's precious vase collection 
         2. Dad's wine collection 
