@@ -12,9 +12,13 @@ config_version=5
 
 config/name="Meow-Project"
 run/main_scene="uid://nlx548b7o12o"
-config/features=PackedStringArray("4.4", "Forward Plus")
+config/features=PackedStringArray("4.4", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
 [dotnet]
 
 project/assembly_name="Meow-Project"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0

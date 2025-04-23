@@ -1,6 +1,16 @@
-[gd_scene load_steps=3 format=3 uid="uid://djyh54dm6h4jm"]
+[gd_scene load_steps=5 format=3 uid="uid://djyh54dm6h4jm"]
 
 [ext_resource type="Script" uid="uid://cxc8r03mdahbd" path="res://scripts/Player.cs" id="1_3vyb7"]
+
+[sub_resource type="Gradient" id="Gradient_3vyb7"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0.5, 0.680851)
+colors = PackedColorArray(0.909804, 0.627451, 0.254902, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_g2els"]
+gradient = SubResource("Gradient_3vyb7")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_u8vuu"]
 radius = 23.0
@@ -9,7 +19,9 @@ height = 46.0
 [node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_3vyb7")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.78125, 0.78125)
+texture = SubResource("GradientTexture2D_g2els")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_u8vuu")

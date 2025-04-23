@@ -1,6 +1,14 @@
-[gd_scene load_steps=3 format=3 uid="uid://nlx548b7o12o"]
+[gd_scene load_steps=5 format=3 uid="uid://nlx548b7o12o"]
 
 [ext_resource type="PackedScene" uid="uid://djyh54dm6h4jm" path="res://scenes/player.tscn" id="1_o5qli"]
+
+[sub_resource type="Gradient" id="Gradient_o5qli"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0)
+colors = PackedColorArray(0.329227, 0.208536, 0.0372918, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_0wfyh"]
+gradient = SubResource("Gradient_o5qli")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sgp6g"]
 size = Vector2(1650, 90)
@@ -15,8 +23,9 @@ position = Vector2(0, -211)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 
+[node name="Sprite2D" type="Sprite2D" parent="StaticBody2D"]
+scale = Vector2(25.75, 1.40625)
+texture = SubResource("GradientTexture2D_0wfyh")
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
 shape = SubResource("RectangleShape2D_sgp6g")
-
-[node name="Sprite2D" type="Sprite2D" parent="StaticBody2D"]
-scale = Vector2(10, 10)
