@@ -17,6 +17,7 @@ size = Vector2(1650, 90)
 
 [node name="Player" parent="." instance=ExtResource("1_o5qli")]
 position = Vector2(-133, -132)
+JumpVelocity = -500.0
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(-2, -245)
