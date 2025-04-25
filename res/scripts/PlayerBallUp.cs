@@ -1,22 +1,12 @@
 using Godot;
 using System;
 
-public partial class Player : CharacterBody2D
+public partial class PlayerBallUp : Player
 {
-	public enum PlayerState
-	{
-		NORMAL,
-		BALL
-	};
-
 	[Export]
-	public float Speed = 350f;
+	public float Speed = 350.0f;
 	[Export]
-	public float JumpVelocity = -500f;
-	[Export]
-	public float SlowWalkMultiplire = 0.5f;
-	[Export]
-	public float FloorFriction = 350f;
+	public float JumpVelocity = -500.0f;
 
 	private AnimatedSprite2D animatedSprite;
 
@@ -28,24 +18,33 @@ public partial class Player : CharacterBody2D
 	{
 		Vector2 velocity = Velocity;
 
-		if ( !IsOnFloor() ){
+		// Add the gravity.
+		if (!IsOnFloor())
+		{
 			velocity += GetGravity() * (float)delta;
-		} 
-		if ( Input.IsActionJustPressed("move_jump") && IsOnFloor() ){
+		}
+
+		// Handle Jump.
+		if (Input.IsActionJustPressed("move_jump") && IsOnFloor())
+		{
 			velocity.Y = JumpVelocity;
 		}
 
+		// Get the input direction and handle the movement/deceleration.
 		float walkDirectionX = GetWalkDirectionX();
 
-		if (walkDirectionX != 0) {
+		if (walkDirectionX != 0)
+		{
 			velocity.X = walkDirectionX * Speed;
 		}
-		else {
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
+		else
+		{
+			velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
 		}
 
 		Velocity = velocity;
-		
+
+		HandleBallUpMech();
 		MoveAndSlide();
 	}
 
@@ -80,5 +79,20 @@ public partial class Player : CharacterBody2D
 		}
 
 		return directionX;
+	}
+
+	private void HandleBallUpMech(){
+		if( Input.IsActionJustPressed("ball_up") ) {
+			animatedSprite.Play("ball_up");
+			GD.Print("Ball");
+		} 
+		else if ( Input.IsActionJustReleased("ball_up") ) {
+			if ( Velocity.Length() > 10 ){
+				animatedSprite.Play("idle");
+			} else {
+				animatedSprite.Play("run");
+			}
+			GD.Print("No Ball");
+		}
 	}
 }
