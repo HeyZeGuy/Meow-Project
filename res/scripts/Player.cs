@@ -1,5 +1,8 @@
 using Godot;
 using System;
+using System.Collections.Generic;
+using System.Numerics;
+using Vector2 = Godot.Vector2;
 
 public partial class Player : CharacterBody2D
 {
@@ -17,12 +20,22 @@ public partial class Player : CharacterBody2D
 	[Export]
 	public float JumpVelocity = -400f;
 	[Export]
+	public float MidAirStopMultiplier = 0.25f;
+	[Export]
+	public float AdditionalFallGravity = 0.5f;
+	[Export]
 	public float FloorFriction = 250f;
 	[Export]
 	public float BallLeaveBounce = -250f;
+	[Export]
+	public bool BallAbility = true;
+	[Export]
+	public bool WallJumpAbility = true;
+	[Export]
+	public bool WallSlideAbility = true;
 	
 	public const double SlowWalkRange = 0.325;
-	public const float SlowWalkMultiplire = 0.5f;
+	public const float SlowWalkMultiplier = 0.5f;
 
 	private PlayerAnimationManager playerAnimatedSprite;
 
@@ -33,18 +46,20 @@ public partial class Player : CharacterBody2D
 
 	public override void _Process(double delta)
 	{
-		if (Input.IsActionJustPressed("ball_up")){
-			playerState = PlayerState.BALL;
-		} 
-		else if (Input.IsActionJustReleased("ball_up")){
-			if ( IsOnFloor() ){
-				Vector2 velocity = Velocity;
-				velocity.Y = BallLeaveBounce;
-				Velocity = velocity;
+		if (BallAbility){
+			if (Input.IsActionJustPressed("ball_up")){
+				playerState = PlayerState.BALL;
+			} 
+			else if (Input.IsActionJustReleased("ball_up")){
+				if ( IsOnFloor() ){
+					Vector2 velocity = Velocity;
+					velocity.Y = BallLeaveBounce;
+					Velocity = velocity;
+				}
+				
+				playerState = PlayerState.NORMAL;
 			}
-			
-			playerState = PlayerState.NORMAL;
-		} 
+		}
 	}
 
 
@@ -62,36 +77,33 @@ public partial class Player : CharacterBody2D
 	private void BasicMovement(double delta)
 	{
 		Vector2 velocity = Velocity;
-		float walkDirectionX = GetWalkDirectionX();
-
-		if ( !IsOnFloor() ){
-			velocity += GetGravity() * (float)delta;
-			if (Velocity.Y > 0){
-				velocity += GetGravity() * (float)delta / 2;
-			}
-		} 
-		if ( Input.IsActionJustPressed("move_jump") && IsOnFloor() ){
-			velocity.Y = JumpVelocity;
-		}
-		if ( Input.IsActionJustReleased("move_jump") && !IsOnFloor() && velocity.Y < 0 ){
-			velocity.Y = JumpVelocity / 4;
-		}
-		if (walkDirectionX != 0 && IsOnFloor()) {
-			velocity.X = walkDirectionX * Speed;
-		}
-		else if (walkDirectionX != 0 && !IsOnFloor()){
-			velocity.X = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX, InAirAcceleration);
-		}
-		else if (walkDirectionX == 0 && !IsOnFloor()){
-			velocity.X = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX / 4, InAirAcceleration / 4);
-		}
-		else if (walkDirectionX == 0 && IsOnFloor()){
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
-		}
+		
+		velocity.X = HandleXMovement();
+		velocity.Y = HandleYMovement(delta);
 
 		Velocity = velocity;
 	
-		playerAnimatedSprite.TriggerAnimation(walkDirectionX, playerState);
+	}
+
+	private float HandleYMovement(double delta)
+	{
+		float velocityY = Velocity.Y;
+		// Handle Gravity, when falling add more gravity
+		if ( !IsOnFloor() ){
+			velocityY += GetGravity().Y * (float)delta;
+			if (velocityY > 0){
+				velocityY += GetGravity().Y * (float)delta * AdditionalFallGravity;
+			}
+		} 
+
+		//Handle Jumps and jump stopping
+		if ( Input.IsActionJustPressed("move_jump") && IsOnFloor() ){
+			velocityY = JumpVelocity;
+		}
+		if ( Input.IsActionJustReleased("move_jump") && !IsOnFloor() && velocityY < 0 ){
+			velocityY = JumpVelocity * MidAirStopMultiplier;
+		}
+		return velocityY;
 	}
 
 	private void BallMovementOverride(double delta)
@@ -125,9 +137,38 @@ public partial class Player : CharacterBody2D
 		
 		// Apply slow walk speed.
 		if (walkSlowly){ 
-			directionX *= SlowWalkMultiplire; 
+			directionX *= SlowWalkMultiplier; 
 		}
 
 		return directionX;
+	}
+
+	private float HandleXMovement(){
+		float velocityX;
+		
+		float walkDirectionX = GetWalkDirectionX();
+		
+		// When on the ground, move at regular speed, when stopping add floor friction to stop
+		if (IsOnFloor()){
+			if (walkDirectionX != 0) {
+				velocityX = walkDirectionX * Speed;
+			}
+			else{
+				velocityX = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
+			}
+			
+		}
+		// When in the air, accelerate, terminal velocity is the movement speed, when stopping, stop gracefully
+		else {
+			if (walkDirectionX != 0) {
+				velocityX = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX, InAirAcceleration);
+			}
+			else {
+				velocityX = Mathf.MoveToward(Velocity.X, 0, InAirAcceleration * MidAirStopMultiplier);
+			}
+		}
+
+		playerAnimatedSprite.TriggerAnimation(walkDirectionX, playerState);
+		return velocityX;
 	}
 }
