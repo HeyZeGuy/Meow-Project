@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class Player : CharacterBody2D
 {
@@ -20,6 +21,7 @@ public partial class Player : CharacterBody2D
 	public float FloorFriction = 250f;
 	[Export]
 	public float BallLeaveBounce = -250f;
+
 	
 	public const double SlowWalkRange = 0.325;
 	public const float SlowWalkMultiplire = 0.5f;
