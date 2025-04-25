@@ -11,7 +11,7 @@ public partial class Player : CharacterBody2D
 	public PlayerState playerState = PlayerState.NORMAL;
 
 	[Export]
-	public float Speed = 350f;
+	public float Speed = 250f;
 	[Export]
 	public float JumpVelocity = -500f;
 	[Export]

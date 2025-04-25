@@ -175,16 +175,15 @@ radius = 6.66666
 height = 16.0
 
 [node name="Player" type="CharacterBody2D"]
+scale = Vector2(2, 2)
 script = ExtResource("1_3vyb7")
 metadata/_edit_group_ = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(1.33333, 0)
 sprite_frames = SubResource("SpriteFrames_jej6c")
-animation = &"run_slow"
+animation = &"run"
 autoplay = "idle"
-frame = 3
-frame_progress = 0.40059
 script = ExtResource("3_gqjuk")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
