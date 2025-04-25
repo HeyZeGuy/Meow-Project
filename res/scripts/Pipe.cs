@@ -22,6 +22,7 @@ public partial class Pipe : StaticBody2D
 			
 			Target.IgnoreBodies.Add(body);
 			
+			Player.IsBeingFlung = true;
 			Player.Velocity = new Vector2(0, -ExitVelocity - (XAxisExtraStrength * Mathf.Sin(Target.Rotation) )).Rotated(Target.Rotation);
 			Player.Position = Target.Position + new Vector2(0, -ExitSpawnDistance).Rotated(Target.Rotation);
 

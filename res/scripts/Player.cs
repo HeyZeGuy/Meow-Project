@@ -22,6 +22,7 @@ public partial class Player : CharacterBody2D
 	[Export]
 	public float BallLeaveBounce = -250f;
 
+	public bool IsBeingFlung = false;
 	
 	public const double SlowWalkRange = 0.325;
 	public const float SlowWalkMultiplire = 0.5f;
@@ -84,11 +85,16 @@ public partial class Player : CharacterBody2D
 		else if (walkDirectionX != 0 && !IsOnFloor()){
 			velocity.X = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX, InAirAcceleration);
 		}
-		else if (walkDirectionX == 0 && !IsOnFloor()){
+		else if (walkDirectionX == 0 && !IsOnFloor() && !IsBeingFlung){
 			velocity.X = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX / 4, InAirAcceleration / 4);
 		}
 		else if (walkDirectionX == 0 && IsOnFloor()){
 			velocity.X = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
+		}
+		// Reset 'IsBeingFlung' after landing.
+		if ( IsOnFloor() && IsBeingFlung ){
+			GD.Print("Landed ", Position);
+			IsBeingFlung = false;
 		}
 
 		Velocity = velocity;
