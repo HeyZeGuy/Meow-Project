@@ -9,13 +9,15 @@ public partial class Player : CharacterBody2D
 		BALL
 	};
 	public PlayerState playerState = PlayerState.NORMAL;
-
+	
 	[Export]
 	public float Speed = 250f;
 	[Export]
-	public float JumpVelocity = -500f;
+	public float InAirAcceleration = 50f;
 	[Export]
-	public float FloorFriction = 350f;
+	public float JumpVelocity = -400f;
+	[Export]
+	public float FloorFriction = 250f;
 	
 	public const double SlowWalkRange = 0.325;
 	public const float SlowWalkMultiplire = 0.5f;
@@ -29,20 +31,30 @@ public partial class Player : CharacterBody2D
 	public override void _PhysicsProcess(double delta)
 	{
 		Vector2 velocity = Velocity;
+		float walkDirectionX = GetWalkDirectionX();
 
 		if ( !IsOnFloor() ){
 			velocity += GetGravity() * (float)delta;
+			if (Velocity.Y > 0){
+				velocity += GetGravity() * (float)delta / 2;
+			}
 		} 
 		if ( Input.IsActionJustPressed("move_jump") && IsOnFloor() ){
 			velocity.Y = JumpVelocity;
 		}
-
-		float walkDirectionX = GetWalkDirectionX();
-
-		if (walkDirectionX != 0) {
+		if ( Input.IsActionJustReleased("move_jump") && !IsOnFloor() && velocity.Y < 0 ){
+			velocity.Y = JumpVelocity / 4;
+		}
+		if (walkDirectionX != 0 && IsOnFloor()) {
 			velocity.X = walkDirectionX * Speed;
 		}
-		else {
+		else if (walkDirectionX != 0 && !IsOnFloor()){
+			velocity.X = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX, InAirAcceleration);
+		}
+		else if (walkDirectionX == 0 && !IsOnFloor()){
+			velocity.X = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX / 4, InAirAcceleration / 4);
+		}
+		else if (walkDirectionX == 0 && IsOnFloor()){
 			velocity.X = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
 		}
 
