@@ -8,20 +8,22 @@ public partial class Player : CharacterBody2D
 		NORMAL,
 		BALL
 	};
+	public PlayerState playerState = PlayerState.NORMAL;
 
 	[Export]
 	public float Speed = 350f;
 	[Export]
 	public float JumpVelocity = -500f;
 	[Export]
-	public float SlowWalkMultiplire = 0.5f;
-	[Export]
 	public float FloorFriction = 350f;
+	
+	public const double SlowWalkRange = 0.325;
+	public const float SlowWalkMultiplire = 0.5f;
 
-	private AnimatedSprite2D animatedSprite;
+	private PlayerAnimationManager playerAnimatedSprite;
 
 	public override void _Ready(){
-		animatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+		playerAnimatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D") as PlayerAnimationManager; // Importing custom script.
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -46,6 +48,7 @@ public partial class Player : CharacterBody2D
 
 		Velocity = velocity;
 		
+		playerAnimatedSprite.TriggerAnimation(walkDirectionX, playerState);
 		MoveAndSlide();
 	}
 
@@ -58,19 +61,13 @@ public partial class Player : CharacterBody2D
 		bool walkSlowly = false;
 		
 		if (directionX == 0) {
-			animatedSprite.Play("idle");
 			return 0;
 		} 
 
-		if ( directionX < -.325 || .325 < directionX){ 
-			// Normal walk speed.
-			animatedSprite.Play("run");
-		} else {
+		if ( directionX > -SlowWalkRange && SlowWalkRange > directionX){ 
 			// Slow walk speed.
 			walkSlowly = true; 
-			animatedSprite.Play("run_slow");
-		}
-		animatedSprite.FlipH = directionX < 0;
+		} 
 
 		directionX /= Mathf.Abs(directionX); // Any value from 0 to 1 will be pinned to 1, Mathf.Sign also works.
 		
