@@ -6,6 +6,8 @@ public partial class PlayerAnimationManager : AnimatedSprite2D
 
 	public void TriggerAnimation(float directionX, Player.PlayerState playerState)
 	{
+		FlipH = directionX < 0;
+
 		if (playerState == Player.PlayerState.NORMAL)
 		{
 
@@ -23,9 +25,12 @@ public partial class PlayerAnimationManager : AnimatedSprite2D
 					// Normal walk speed.
 					Play("run");
 				}
-				FlipH = directionX < 0;
 			}
-			
+	
+		} 
+		else if (playerState == Player.PlayerState.BALL) 
+		{	
+			Play("ball_up");
 		}
 	}
 }
