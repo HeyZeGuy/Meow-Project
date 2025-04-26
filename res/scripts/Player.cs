@@ -23,6 +23,7 @@ public partial class Player : CharacterBody2D
 	public float BallLeaveBounce = -250f;
 
 	public bool IsBeingFlung = false;
+	public float IsBeingFlungGracePeriod = 0.2f; // Wait this time before 'IsBeingFlung' to be disabled.
 	
 	public const double SlowWalkRange = 0.325;
 	public const float SlowWalkMultiplire = 0.5f;
@@ -53,6 +54,8 @@ public partial class Player : CharacterBody2D
 
 	public override void _PhysicsProcess(double delta)
 	{
+		IsBeingFlungGracePeriod -= (float)delta;
+
 		BasicMovement(delta);
 
 		if (playerState == PlayerState.BALL){
@@ -92,8 +95,7 @@ public partial class Player : CharacterBody2D
 			velocity.X = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
 		}
 		// Reset 'IsBeingFlung' after landing.
-		if ( IsOnFloor() && IsBeingFlung ){
-			GD.Print("Landed ", Position);
+		if ( IsBeingFlung && IsBeingFlungGracePeriod <= 0 && IsOnFloor() ){
 			IsBeingFlung = false;
 		}
 

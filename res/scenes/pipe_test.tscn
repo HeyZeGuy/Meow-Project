@@ -48,7 +48,7 @@ sources/1 = SubResource("TileSetAtlasSource_sugp2")
 [node name="pipe_test" type="Node2D"]
 
 [node name="Player" parent="." instance=ExtResource("1_yw5e2")]
-position = Vector2(20, -170)
+position = Vector2(27, -177)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(-2, -245)
@@ -67,27 +67,21 @@ rotation = -1.5708
 Target = NodePath("../Pipe3")
 
 [node name="Pipe3" parent="pipes3" node_paths=PackedStringArray("Target") instance=ExtResource("3_a8hi4")]
-position = Vector2(-51, -112)
+position = Vector2(-128, -100)
+scale = Vector2(1, 1.32)
 Target = NodePath("../Pipe4")
 
 [node name="pipes2" type="Node" parent="."]
 
 [node name="Pipe4" parent="pipes2" node_paths=PackedStringArray("Target") instance=ExtResource("3_a8hi4")]
-position = Vector2(212, -175)
+position = Vector2(229, -155)
 rotation = -0.785398
+scale = Vector2(1, 1.45255)
 Target = NodePath("../Pipe3")
 
 [node name="Pipe3" parent="pipes2" node_paths=PackedStringArray("Target") instance=ExtResource("3_a8hi4")]
-position = Vector2(106, -103)
+position = Vector2(128, -99)
+scale = Vector2(1, 1.28)
 Target = NodePath("../Pipe4")
 
 [node name="pipes1" type="Node" parent="."]
-
-[node name="Pipe4" parent="pipes1" node_paths=PackedStringArray("Target") instance=ExtResource("3_a8hi4")]
-position = Vector2(-187, -372)
-rotation = 3.14159
-Target = NodePath("../Pipe3")
-
-[node name="Pipe3" parent="pipes1" node_paths=PackedStringArray("Target") instance=ExtResource("3_a8hi4")]
-position = Vector2(-194, -109)
-Target = NodePath("../Pipe4")
