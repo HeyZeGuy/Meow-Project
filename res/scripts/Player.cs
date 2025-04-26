@@ -23,7 +23,7 @@ public partial class Player : CharacterBody2D
 	public float BallLeaveBounce = -250f;
 
 	public bool IsBeingFlung = false;
-	public float IsBeingFlungGracePeriod = 0.2f; // Wait this time before 'IsBeingFlung' to be disabled.
+	public float IsBeingFlungGracePeriod = 0.2f; // Wait this time before 'IsBeingFlung' can be disabled.
 	
 	public const double SlowWalkRange = 0.325;
 	public const float SlowWalkMultiplire = 0.5f;
