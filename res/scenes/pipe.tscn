@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://cwbse0e1vxtaw"]
+
+[ext_resource type="Texture2D" uid="uid://b86lcubjjoopl" path="res://assets/sprites/preview_104.png" id="1_8x3ej"]
+[ext_resource type="Script" uid="uid://b85g120h4o3ji" path="res://scripts/Pipe.cs" id="1_arpqm"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_arpqm"]
+size = Vector2(63, 51)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8x3ej"]
+size = Vector2(63, 2)
+
+[node name="Pipe" type="StaticBody2D"]
+script = ExtResource("1_arpqm")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, 26)
+scale = Vector2(1.56977, 1)
+texture = ExtResource("1_8x3ej")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 26.5)
+shape = SubResource("RectangleShape2D_arpqm")
+
+[node name="ActionArea" type="Area2D" parent="."]
+position = Vector2(0, -18)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ActionArea"]
+position = Vector2(0, 19)
+shape = SubResource("RectangleShape2D_8x3ej")
+
+[connection signal="body_entered" from="ActionArea" to="." method="_on_action_area_body_entered"]
+[connection signal="body_exited" from="ActionArea" to="." method="_on_action_area_body_exited"]

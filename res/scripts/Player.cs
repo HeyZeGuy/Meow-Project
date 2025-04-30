@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class Player : CharacterBody2D
 {
@@ -20,6 +21,9 @@ public partial class Player : CharacterBody2D
 	public float FloorFriction = 250f;
 	[Export]
 	public float BallLeaveBounce = -250f;
+
+	public bool IsBeingFlung = false;
+	public float IsBeingFlungLaunchPeriod = 0f; // Wait this time before the player can control & 'IsBeingFlung' can be disabled - set this from the launching scene.
 	
 	public const double SlowWalkRange = 0.325;
 	public const float SlowWalkMultiplire = 0.5f;
@@ -50,6 +54,8 @@ public partial class Player : CharacterBody2D
 
 	public override void _PhysicsProcess(double delta)
 	{
+		IsBeingFlungLaunchPeriod -= (float)delta;
+
 		BasicMovement(delta);
 
 		if (playerState == PlayerState.BALL){
@@ -62,7 +68,6 @@ public partial class Player : CharacterBody2D
 	private void BasicMovement(double delta)
 	{
 		Vector2 velocity = Velocity;
-		float walkDirectionX = GetWalkDirectionX();
 
 		if ( !IsOnFloor() ){
 			velocity += GetGravity() * (float)delta;
@@ -70,39 +75,55 @@ public partial class Player : CharacterBody2D
 				velocity += GetGravity() * (float)delta / 2;
 			}
 		} 
-		if ( Input.IsActionJustPressed("move_jump") && IsOnFloor() ){
-			velocity.Y = JumpVelocity;
-		}
-		if ( Input.IsActionJustReleased("move_jump") && !IsOnFloor() && velocity.Y < 0 ){
-			velocity.Y = JumpVelocity / 4;
-		}
-		if (walkDirectionX != 0 && IsOnFloor()) {
-			velocity.X = walkDirectionX * Speed;
-		}
-		else if (walkDirectionX != 0 && !IsOnFloor()){
-			velocity.X = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX, InAirAcceleration);
-		}
-		else if (walkDirectionX == 0 && !IsOnFloor()){
-			velocity.X = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX / 4, InAirAcceleration / 4);
-		}
-		else if (walkDirectionX == 0 && IsOnFloor()){
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
+
+		// Don't allow player movement in the first part of being launched.
+		if ( IsBeingFlungLaunchPeriod <= 0 )
+		{
+			float walkDirectionX = GetWalkDirectionX();
+
+			if ( Input.IsActionJustPressed("move_jump") && IsOnFloor() ){
+				velocity.Y = JumpVelocity;
+			}
+			if ( Input.IsActionJustReleased("move_jump") && !IsOnFloor() && velocity.Y < 0 ){
+				velocity.Y = JumpVelocity / 4;
+			}
+			if (walkDirectionX != 0 && IsOnFloor()) {
+				velocity.X = walkDirectionX * Speed;
+			}
+			else if (walkDirectionX != 0 && !IsOnFloor()){
+				velocity.X = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX, InAirAcceleration);
+			}
+			else if (walkDirectionX == 0 && !IsOnFloor() && !IsBeingFlung){
+				velocity.X = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX / 4, InAirAcceleration / 4);
+			}
+			else if (walkDirectionX == 0 && IsOnFloor()){
+				velocity.X = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
+			}
+			// Reset 'IsBeingFlung' after landing.
+			if ( IsBeingFlung && IsOnFloor() ){
+				IsBeingFlung = false;
+			}
+
+			playerAnimatedSprite.TriggerAnimation(walkDirectionX, playerState);
 		}
 
 		Velocity = velocity;
 	
-		playerAnimatedSprite.TriggerAnimation(walkDirectionX, playerState);
 	}
 
 	private void BallMovementOverride(double delta)
-	{
-		Vector2 velocity = Velocity;
+	{	
+		// Don't allow player movement in the first part of being launched.
+		if ( IsBeingFlungLaunchPeriod <= 0 )
+		{
+			Vector2 velocity = Velocity;
 
-		if ( Input.IsActionJustPressed("move_jump") && IsOnFloor() ){
-			velocity.Y = JumpVelocity / 2;
+			if ( Input.IsActionJustPressed("move_jump") && IsOnFloor() ){
+				velocity.Y = JumpVelocity / 2;
+			}
+
+			Velocity = velocity;
 		}
-
-		Velocity = velocity;
 	}
 
 

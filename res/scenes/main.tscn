@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://djyh54dm6h4jm" path="res://scenes/Player/player.tscn" id="1_o5qli"]
 [ext_resource type="Texture2D" uid="uid://db7ksxe2d5fr6" path="res://icon.svg" id="2_0wfyh"]
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sugp2"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0wfyh"]
 texture = ExtResource("2_0wfyh")
 texture_region_size = Vector2i(32, 32)
 0:0/0 = 0
@@ -42,7 +42,7 @@ texture_region_size = Vector2i(32, 32)
 [sub_resource type="TileSet" id="TileSet_jyhfs"]
 tile_size = Vector2i(32, 32)
 physics_layer_0/collision_layer = 1
-sources/1 = SubResource("TileSetAtlasSource_sugp2")
+sources/1 = SubResource("TileSetAtlasSource_0wfyh")
 
 [node name="main" type="Node2D"]
 
