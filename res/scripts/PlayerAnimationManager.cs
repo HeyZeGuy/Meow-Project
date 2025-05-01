@@ -18,7 +18,7 @@ public partial class PlayerAnimationManager : AnimatedSprite2D
 				if ( directionX == 0) {
 					Play("idle");
 				}
-				else if ( Mathf.Abs(directionX) == 1 * Player.SlowWalkMultiplire ){ 
+				else if ( Mathf.Abs(directionX) == 1 * Player.SlowWalkMultiplier ){ 
 					// Slow walk speed.
 					Play("run_slow");
 				} else {
