@@ -16,6 +16,9 @@ public partial class Pipe : StaticBody2D
 	
 	public List<Node2D> IgnoreBodies = [];
 
+	[Signal]
+	public delegate void FlingEventHandler(Vector2 flingVelocity, float launchPeriod, Vector2 targetPos);
+
 	// Teleports player to the target pipe.
 	async public void _on_action_area_body_entered(Node2D body)
 	{
@@ -26,11 +29,11 @@ public partial class Pipe : StaticBody2D
 			// {
 			Target.IgnoreBodies.Add(body);
 			
-			Player.IsBeingFlung = true;
-			Player.IsBeingFlungLaunchPeriod = IsBeingFlungLaunchPeriod;
-			Player.Velocity = new Vector2(0, -ExitVelocity - (XAxisExtraStrength * Mathf.Sin(Target.Rotation) )).Rotated(Target.Rotation);
-			Player.Position = Target.Position + new Vector2(0, -ExitSpawnDistance).Rotated(Target.Rotation);
-
+			Vector2 flingVelocity = new Vector2(0, -ExitVelocity - (XAxisExtraStrength * Mathf.Sin(Target.Rotation) )).Rotated(Target.Rotation);
+			Vector2 targetPos = Target.Position + new Vector2(0, -ExitSpawnDistance).Rotated(Target.Rotation);
+			
+			EmitSignal(SignalName.Fling, flingVelocity,IsBeingFlungLaunchPeriod, targetPos);
+			
 			await ToSignal(GetTree().CreateTimer(.25), SceneTreeTimer.SignalName.Timeout);
 
 			Target.IgnoreBodies.Remove(body);
