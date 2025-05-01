@@ -9,12 +9,15 @@ public partial class Player : CharacterBody2D
 	public enum PlayerState
 	{
 		NORMAL,
-		BALL
+		BALL,
+		SLIDE
 	};
 	public PlayerState playerState = PlayerState.NORMAL;
 	
 	[Export]
 	public float Speed = 250f;
+	[Export]
+	public float WallSlideSpeed = 100f;
 	[Export]
 	public float InAirAcceleration = 50f;
 	[Export]
@@ -100,12 +103,37 @@ public partial class Player : CharacterBody2D
 		velocity.X = HandleXMovement();
 		velocity.Y = HandleYMovement(delta);
 		}
-		
 
+		if(IsOnWall())
+		{
+			IsBeingFlung = false;
+
+			float dir = Math.Sign(velocity.X);
+			if(dir == 0) dir = Math.Sign(GetWallNormal().X);
+
+			if(dir !=Math.Sign(GetWallNormal().X))
+			{
+				playerState = PlayerState.SLIDE;
+				if(WallSlideAbility) velocity.Y = WallSlideSpeed;
+				if(Input.IsActionJustPressed("move_jump"))
+				{
+					WallJumpMovementOverride();
+				}
+			}
+			else
+			{
+				playerState = PlayerState.NORMAL;
+			}
+			
+
+		}
 		Velocity = velocity;
 	
 	}
+	private void WallJumpMovementOverride()
+	{
 
+	}
 	private float HandleYMovement(double delta)
 	{
 		float velocityY = Velocity.Y;

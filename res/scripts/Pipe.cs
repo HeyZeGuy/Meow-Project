@@ -23,8 +23,6 @@ public partial class Pipe : StaticBody2D
 	async public void _on_action_area_body_entered(Node2D body)
 	{
 		if (body is Player && !IgnoreBodies.Contains(body)){
-			Player Player = (Player)body;
-
 			// if ( Player.playerState == Player.PlayerState.BALL )
 			// {
 			Target.IgnoreBodies.Add(body);
@@ -33,7 +31,7 @@ public partial class Pipe : StaticBody2D
 			Vector2 targetPos = Target.Position + new Vector2(0, -ExitSpawnDistance).Rotated(Target.Rotation);
 			
 			EmitSignal(SignalName.Fling, flingVelocity,IsBeingFlungLaunchPeriod, targetPos);
-			
+
 			await ToSignal(GetTree().CreateTimer(.25), SceneTreeTimer.SignalName.Timeout);
 
 			Target.IgnoreBodies.Remove(body);
