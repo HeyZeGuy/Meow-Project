@@ -32,5 +32,9 @@ public partial class PlayerAnimationManager : AnimatedSprite2D
 		{	
 			Play("ball_up");
 		}
+		else if (playerState == Player.PlayerState.SLIDE)
+		{
+			Play("wall_slide");
+		}
 	}
 }

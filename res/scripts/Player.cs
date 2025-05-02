@@ -111,7 +111,7 @@ public partial class Player : CharacterBody2D
 			// Balls can't slide off walls
 			if(playerState != PlayerState.BALL)
 			{
-				if(dir !=Math.Sign(GetWallNormal().X) && WallSlideAbility)
+				if(dir != Math.Sign(GetWallNormal().X) && WallSlideAbility)
 				{
 					playerState = PlayerState.SLIDE;
 					velocity.Y = WallSlideSpeed;
