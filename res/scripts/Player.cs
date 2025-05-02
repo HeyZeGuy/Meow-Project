@@ -151,11 +151,9 @@ public partial class Player : CharacterBody2D
 				// decelerate to halt using floor friction 
 				velocityX = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
 			}
-			if ( IsBeingFlungLaunchPeriod <= 0 )
-			{
-				// Wait until in the air before disabling flungness for no reason
-				IsBeingFlung = false;
-			}
+				// disable flungness when hitting ground
+			IsBeingFlung = false;
+			
 		}
 		else {
 			if (IsBeingFlung)
