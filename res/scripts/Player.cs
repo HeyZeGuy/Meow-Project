@@ -21,7 +21,7 @@ public partial class Player : CharacterBody2D
 	[Export] public float JumpVelocity = -400f;
 	[Export] public float AdditionalFallGravity = 0.5f;
 	[Export] public float MidAirSpeedMultiplier = .75f;
-	[Export] public float MidAirStopMultiplier = 0.25f;
+	[Export] public float JumpStopMultiplier = 0.25f;
 	// Ability checks
 	[Export] public bool BallAbility = true;
 	[Export] public bool WallJumpAbility = true;
@@ -33,7 +33,7 @@ public partial class Player : CharacterBody2D
 	// Pipe fling related vars
 	private bool IsBeingFlung = false;
 	private float IsBeingFlungLaunchPeriod = 0f; // Wait this time before the player can control & 'IsBeingFlung' can be disabled - set this from the launching scene.
-	private Vector2 FlingVelocity;
+	private float FlingVelocityX;
 	// Slow walks
 	private const double SlowWalkRange = 0.325;
 	public const float SlowWalkMultiplier = 0.5f;
@@ -44,8 +44,8 @@ public partial class Player : CharacterBody2D
 	public void _on_pipe_fling(Vector2 flingVelocity, float launchPeriod, Vector2 targetPos)
 	{
 		Position = targetPos;
-		FlingVelocity = flingVelocity;
-		Velocity = FlingVelocity;
+		FlingVelocityX = flingVelocity.X;
+		Velocity = flingVelocity;
 		IsBeingFlung = true;
 		IsBeingFlungLaunchPeriod = launchPeriod;
 	}
@@ -103,7 +103,7 @@ public partial class Player : CharacterBody2D
 		// Handle Wall jump and slide movement overrides
 		if(IsOnWall())
 		{
-			IsBeingFlung = false;
+			stopFling();
 
 			float dir = Math.Sign(velocity.X);
 			if(dir == 0) dir = Math.Sign(GetWallNormal().X);
@@ -141,6 +141,8 @@ public partial class Player : CharacterBody2D
 		float walkDirectionX = GetWalkDirectionX();
 		
 		if (IsOnFloor()){
+			stopFling();
+
 			if (walkDirectionX != 0)
 			{
 				// When on the ground, move at regular speed, account for slow walk
@@ -151,24 +153,26 @@ public partial class Player : CharacterBody2D
 				// decelerate to halt using floor friction 
 				velocityX = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
 			}
-				// disable flungness when hitting ground
-			IsBeingFlung = false;
-			
+				// disable flungness when hitting ground			
 		}
 		else {
 			if (IsBeingFlung)
 			{
 				// Allow for faster launches without forcing player to regular speed
-				float dir = 0;
-				if(walkDirectionX == 0) dir = Math.Sign(FlingVelocity.X);
-				else dir = Math.Sign(walkDirectionX);
-				velocityX = Mathf.MoveToward(Velocity.X, Math.Abs(FlingVelocity.X) * dir + Speed * walkDirectionX, InAirAcceleration * MidAirStopMultiplier);
+				velocityX = Velocity.X;
+				float dir = Math.Sign(FlingVelocityX);
+				if(walkDirectionX != dir && walkDirectionX != 0)
+				{
+					stopFling();
+					velocityX = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX, InAirAcceleration);
+				}
 			}
 			else
 			{
-				// When in the air, accelerate slowly to reach speed
-				velocityX = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX * MidAirSpeedMultiplier, InAirAcceleration);
+				// When in the air, accelerate slowly to reach speed, If not walking, stop gracefully
+				velocityX = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX, InAirAcceleration);
 			}
+
 		}
 
 		playerAnimatedSprite.TriggerAnimation(walkDirectionX, playerState);
@@ -195,7 +199,7 @@ public partial class Player : CharacterBody2D
 		}
 		if ( Input.IsActionJustReleased("move_jump") && !IsOnFloor() && velocityY < 0 )
 		{
-			velocityY = JumpVelocity * MidAirStopMultiplier;
+			velocityY = JumpVelocity * JumpStopMultiplier;
 		}
 		return velocityY;
 	}
@@ -238,5 +242,10 @@ public partial class Player : CharacterBody2D
 		}
 
 		return directionX;
-	}	
+	}
+
+	public void stopFling()
+	{
+		IsBeingFlung = false;
+	}
 }
