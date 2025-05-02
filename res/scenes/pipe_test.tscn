@@ -86,8 +86,3 @@ scale = Vector2(1, 1.28)
 Target = NodePath("../Pipe4")
 
 [node name="pipes1" type="Node" parent="."]
-
-[connection signal="Fling" from="pipes3/Pipe4" to="Player" method="_on_pipe_fling"]
-[connection signal="Fling" from="pipes3/Pipe3" to="Player" method="_on_pipe_fling"]
-[connection signal="Fling" from="pipes2/Pipe4" to="Player" method="_on_pipe_fling"]
-[connection signal="Fling" from="pipes2/Pipe3" to="Player" method="_on_pipe_fling"]

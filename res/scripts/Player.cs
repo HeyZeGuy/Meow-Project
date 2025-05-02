@@ -13,33 +13,34 @@ public partial class Player : CharacterBody2D
 		SLIDE
 	};
 	public PlayerState playerState = PlayerState.NORMAL;
-	
+	// X axis speed related vars
 	[Export] public float Speed = 250f;
 	[Export] public float FloorFriction = 250f;
 	[Export] public float InAirAcceleration = 40f;
-
+	// Air movement related vars
 	[Export] public float JumpVelocity = -400f;
 	[Export] public float AdditionalFallGravity = 0.5f;
 	[Export] public float MidAirSpeedMultiplier = .75f;
 	[Export] public float MidAirStopMultiplier = 0.25f;
-
+	// Ability checks
 	[Export] public bool BallAbility = true;
 	[Export] public bool WallJumpAbility = true;
 	[Export] public bool WallSlideAbility = true;
-
-	[Export] public float BallLeaveBounce = -250f;
+	// Ability Related vars
+	[Export] public float BallBounceMultiplier = 0.5f;
 	[Export] public float WallSlideSpeed = 100f;
 	[Export] public Vector2 WallJumpMultiplier = new Vector2(2, 0.75f);
-	
+	// Pipe fling related vars
 	private bool IsBeingFlung = false;
 	private float IsBeingFlungLaunchPeriod = 0f; // Wait this time before the player can control & 'IsBeingFlung' can be disabled - set this from the launching scene.
 	private Vector2 FlingVelocity;
-
+	// Slow walks
 	private const double SlowWalkRange = 0.325;
 	public const float SlowWalkMultiplier = 0.5f;
 
 	private PlayerAnimationManager playerAnimatedSprite;
 
+	// Handling piping mechanic
 	public void _on_pipe_fling(Vector2 flingVelocity, float launchPeriod, Vector2 targetPos)
 	{
 		Position = targetPos;
@@ -52,11 +53,11 @@ public partial class Player : CharacterBody2D
 	{
 		playerAnimatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D") as PlayerAnimationManager; // Importing custom script.
 	}
-
 	public override void _Process(double delta)
-	{
+	{	
+		// Activate and disenagage balling mechanic
 		if (BallAbility){
-			if (Input.IsActionJustPressed("ball_up"))
+			if (Input.IsActionPressed("ball_up"))
 			{
 				playerState = PlayerState.BALL;
 			} 
@@ -65,7 +66,7 @@ public partial class Player : CharacterBody2D
 				if ( IsOnFloor() )
 				{
 					Vector2 velocity = Velocity;
-					velocity.Y = BallLeaveBounce;
+					velocity.Y = JumpVelocity * BallBounceMultiplier;
 					Velocity = velocity;
 				}
 				
@@ -85,45 +86,95 @@ public partial class Player : CharacterBody2D
 		{
 			BallMovementOverride(delta);
 		}
-
+		// Built-In function to move the player
 		MoveAndSlide();
 	}
 
 	private void BasicMovement(double delta)
 	{
 		Vector2 velocity = Velocity;
+		// Move regularly unless just flung
 		if(IsBeingFlungLaunchPeriod <=0)
 		{
 		velocity.X = HandleXMovement();
 		velocity.Y = HandleYMovement(delta);
 		}
 
+		// Handle Wall jump and slide movement overrides
 		if(IsOnWall())
 		{
 			IsBeingFlung = false;
 
 			float dir = Math.Sign(velocity.X);
 			if(dir == 0) dir = Math.Sign(GetWallNormal().X);
-
-			if(dir !=Math.Sign(GetWallNormal().X))
+			
+			// Balls can't slide off walls
+			if(playerState != PlayerState.BALL)
 			{
-				playerState = PlayerState.SLIDE;
-				if(WallSlideAbility) velocity.Y = WallSlideSpeed;
+				if(dir !=Math.Sign(GetWallNormal().X) && WallSlideAbility)
+				{
+					playerState = PlayerState.SLIDE;
+					velocity.Y = WallSlideSpeed;
+				}
+				else
+				{
+					playerState = PlayerState.NORMAL;
+				}
+				if(Input.IsActionJustPressed("move_jump"))
+				{
+					velocity.X = Speed * WallJumpMultiplier.X;
+					velocity.Y = JumpVelocity * WallJumpMultiplier.Y;
+					if(Math.Sign(GetWallNormal().X) < 0) velocity.X = -velocity.X; // Flip Jump in case of opposite wall
+				}
+			}
+
+
+		}
+		// Apply all previous changes (after override)
+		Velocity = velocity;
+	
+	}
+
+	private float HandleXMovement(){
+		float velocityX;
+		
+		float walkDirectionX = GetWalkDirectionX();
+		
+		if (IsOnFloor()){
+			if (walkDirectionX != 0)
+			{
+				// When on the ground, move at regular speed, account for slow walk
+				velocityX = walkDirectionX * Speed;
 			}
 			else
 			{
-				playerState = PlayerState.NORMAL;
+				// decelerate to halt using floor friction 
+				velocityX = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
 			}
-			if(Input.IsActionJustPressed("move_jump"))
+			if ( IsBeingFlungLaunchPeriod <= 0 )
 			{
-				velocity.X = Speed * WallJumpMultiplier.X;
-				velocity.Y = JumpVelocity * WallJumpMultiplier.Y;
-				if(Math.Sign(GetWallNormal().X) < 0) velocity.X = -velocity.X ;
+				// Wait until in the air before disabling flungness for no reason
+				IsBeingFlung = false;
 			}
-
 		}
-		Velocity = velocity;
-	
+		else {
+			if (IsBeingFlung)
+			{
+				// Allow for faster launches without forcing player to regular speed
+				float dir = 0;
+				if(walkDirectionX == 0) dir = Math.Sign(FlingVelocity.X);
+				else dir = Math.Sign(walkDirectionX);
+				velocityX = Mathf.MoveToward(Velocity.X, Math.Abs(FlingVelocity.X) * dir + Speed * walkDirectionX, InAirAcceleration * MidAirStopMultiplier);
+			}
+			else
+			{
+				// When in the air, accelerate slowly to reach speed
+				velocityX = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX * MidAirSpeedMultiplier, InAirAcceleration);
+			}
+		}
+
+		playerAnimatedSprite.TriggerAnimation(walkDirectionX, playerState);
+		return velocityX;
 	}
 
 	private float HandleYMovement(double delta)
@@ -157,12 +208,11 @@ public partial class Player : CharacterBody2D
 
 			if ( Input.IsActionJustPressed("move_jump") && IsOnFloor() )
 			{
-				velocity.Y = JumpVelocity / 2;
+				velocity.Y = JumpVelocity * BallBounceMultiplier;
 			}
 
 			Velocity = velocity;
 	}
-
 
 	// Returns direction in x axis, -1/0/1.
 	private float GetWalkDirectionX()
@@ -190,46 +240,5 @@ public partial class Player : CharacterBody2D
 		}
 
 		return directionX;
-	}
-
-	private float HandleXMovement(){
-		float velocityX;
-		
-		float walkDirectionX = GetWalkDirectionX();
-		
-		// When on the ground, move at regular speed, when stopping add floor friction to stop
-		if (IsOnFloor()){
-			if (walkDirectionX != 0)
-			{
-				velocityX = walkDirectionX * Speed;
-			}
-			else
-			{
-				velocityX = Mathf.MoveToward(Velocity.X, 0, FloorFriction);
-			}
-			// Wait until in the air to disable flungness
-			if ( IsBeingFlungLaunchPeriod <= 0 )
-			{
-				IsBeingFlung = false;
-			}
-		}
-		// When in the air, accelerate, terminal velocity is the movement speed, when stopping, stop gracefully
-		else {
-			if (IsBeingFlung)
-			{
-				float dir = 0;
-				if(walkDirectionX == 0) dir = Math.Sign(FlingVelocity.X);
-				else dir = Math.Sign(walkDirectionX);
-				velocityX = Mathf.MoveToward(Velocity.X, Math.Abs(FlingVelocity.X) * dir + Speed * walkDirectionX, InAirAcceleration * MidAirStopMultiplier);
-			}
-			else
-			{
-				velocityX = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX * MidAirSpeedMultiplier, InAirAcceleration);
-			}
-		}
-
-		playerAnimatedSprite.TriggerAnimation(walkDirectionX, playerState);
-		return velocityX;
-	}
-	
+	}	
 }
