@@ -19,6 +19,8 @@ public partial class Player : CharacterBody2D
 	[Export]
 	public float WallSlideSpeed = 100f;
 	[Export]
+	public Vector2 WallJumpForce = new Vector2(-750f, -300f);
+	[Export]
 	public float InAirAcceleration = 50f;
 	[Export]
 	public float JumpVelocity = -400f;
@@ -115,25 +117,23 @@ public partial class Player : CharacterBody2D
 			{
 				playerState = PlayerState.SLIDE;
 				if(WallSlideAbility) velocity.Y = WallSlideSpeed;
-				if(Input.IsActionJustPressed("move_jump"))
-				{
-					WallJumpMovementOverride();
-				}
 			}
 			else
 			{
 				playerState = PlayerState.NORMAL;
 			}
-			
+			if(Input.IsActionJustPressed("move_jump"))
+			{
+				velocity = WallJumpForce;
+				if(Math.Sign(GetWallNormal().X) > 0) velocity.X = -velocity.X ;
+				GD.Print(velocity);
+			}
 
 		}
 		Velocity = velocity;
 	
 	}
-	private void WallJumpMovementOverride()
-	{
 
-	}
 	private float HandleYMovement(double delta)
 	{
 		float velocityY = Velocity.Y;
