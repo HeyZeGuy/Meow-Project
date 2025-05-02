@@ -126,7 +126,6 @@ public partial class Player : CharacterBody2D
 			{
 				velocity = WallJumpForce;
 				if(Math.Sign(GetWallNormal().X) > 0) velocity.X = -velocity.X ;
-				GD.Print(velocity);
 			}
 
 		}
