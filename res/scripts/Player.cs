@@ -33,7 +33,7 @@ public partial class Player : CharacterBody2D
 	// Pipe fling related vars
 	private bool IsBeingFlung = false;
 	private float IsBeingFlungLaunchPeriod = 0f; // Wait this time before the player can control & 'IsBeingFlung' can be disabled - set this from the launching scene.
-	private float FlingVelocityX;
+	private float LastFlingDir;
 	// Slow walks
 	private const double SlowWalkRange = 0.325;
 	public const float SlowWalkMultiplier = 0.5f;
@@ -44,7 +44,7 @@ public partial class Player : CharacterBody2D
 	public void _on_pipe_fling(Vector2 flingVelocity, float launchPeriod, Vector2 targetPos)
 	{
 		Position = targetPos;
-		FlingVelocityX = flingVelocity.X;
+		LastFlingDir = Math.Sign(flingVelocity.X);
 		Velocity = flingVelocity;
 		IsBeingFlung = true;
 		IsBeingFlungLaunchPeriod = launchPeriod;
@@ -158,10 +158,9 @@ public partial class Player : CharacterBody2D
 		else {
 			if (IsBeingFlung)
 			{
-				// Allow for faster launches without forcing player to regular speed
+				// When resisting a fling, stop flinging.
 				velocityX = Velocity.X;
-				float dir = Math.Sign(FlingVelocityX);
-				if(walkDirectionX != dir && walkDirectionX != 0)
+				if(walkDirectionX != LastFlingDir && walkDirectionX != 0)
 				{
 					stopFling();
 					velocityX = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX, InAirAcceleration);
