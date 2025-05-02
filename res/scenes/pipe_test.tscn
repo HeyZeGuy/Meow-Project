@@ -78,6 +78,7 @@ position = Vector2(229, -155)
 rotation = -0.785398
 scale = Vector2(1, 1.45255)
 Target = NodePath("../Pipe3")
+ExitVelocity = 400.0
 
 [node name="Pipe3" parent="pipes2" node_paths=PackedStringArray("Target") instance=ExtResource("3_a8hi4")]
 position = Vector2(128, -99)

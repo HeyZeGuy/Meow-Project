@@ -14,35 +14,27 @@ public partial class Player : CharacterBody2D
 	};
 	public PlayerState playerState = PlayerState.NORMAL;
 	
-	[Export]
-	public float Speed = 250f;
-	[Export]
-	public float WallSlideSpeed = 100f;
-	[Export]
-	public Vector2 WallJumpForce = new Vector2(-750f, -300f);
-	[Export]
-	public float InAirAcceleration = 50f;
-	[Export]
-	public float JumpVelocity = -400f;
-	[Export]
-	public float MidAirStopMultiplier = 0.25f;
-	[Export]
-	public float AdditionalFallGravity = 0.5f;
-	[Export]
-	public float FloorFriction = 250f;
-	[Export]
-	public float BallLeaveBounce = -250f;
-	[Export]
-	public bool BallAbility = true;
-	[Export]
-	public bool WallJumpAbility = true;
-	[Export]
-	public bool WallSlideAbility = true;
+	[Export] public float Speed = 250f;
+	[Export] public float FloorFriction = 250f;
+	[Export] public float InAirAcceleration = 40f;
 
+	[Export] public float JumpVelocity = -400f;
+	[Export] public float AdditionalFallGravity = 0.5f;
+	[Export] public float MidAirSpeedMultiplier = .75f;
+	[Export] public float MidAirStopMultiplier = 0.25f;
+
+	[Export] public bool BallAbility = true;
+	[Export] public bool WallJumpAbility = true;
+	[Export] public bool WallSlideAbility = true;
+
+	[Export] public float BallLeaveBounce = -250f;
+	[Export] public float WallSlideSpeed = 100f;
+	[Export] public Vector2 WallJumpMultiplier = new Vector2(2, 0.75f);
+	
 	private bool IsBeingFlung = false;
 	private float IsBeingFlungLaunchPeriod = 0f; // Wait this time before the player can control & 'IsBeingFlung' can be disabled - set this from the launching scene.
-	
 	private Vector2 FlingVelocity;
+
 	private const double SlowWalkRange = 0.325;
 	public const float SlowWalkMultiplier = 0.5f;
 
@@ -124,8 +116,9 @@ public partial class Player : CharacterBody2D
 			}
 			if(Input.IsActionJustPressed("move_jump"))
 			{
-				velocity = WallJumpForce;
-				if(Math.Sign(GetWallNormal().X) > 0) velocity.X = -velocity.X ;
+				velocity.X = Speed * WallJumpMultiplier.X;
+				velocity.Y = JumpVelocity * WallJumpMultiplier.Y;
+				if(Math.Sign(GetWallNormal().X) < 0) velocity.X = -velocity.X ;
 			}
 
 		}
@@ -231,7 +224,7 @@ public partial class Player : CharacterBody2D
 			}
 			else
 			{
-				velocityX = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX, InAirAcceleration);
+				velocityX = Mathf.MoveToward(Velocity.X, Speed * walkDirectionX * MidAirSpeedMultiplier, InAirAcceleration);
 			}
 		}
 
