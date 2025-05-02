@@ -103,32 +103,7 @@ public partial class Player : CharacterBody2D
 		// Handle Wall jump and slide movement overrides
 		if(IsOnWall())
 		{
-			stopFling();
-
-			float dir = Math.Sign(velocity.X);
-			if(dir == 0) dir = Math.Sign(GetWallNormal().X);
-			
-			// Balls can't slide off walls
-			if(playerState != PlayerState.BALL)
-			{
-				if(dir != Math.Sign(GetWallNormal().X) && WallSlideAbility)
-				{
-					playerState = PlayerState.SLIDE;
-					velocity.Y = WallSlideSpeed;
-				}
-				else
-				{
-					playerState = PlayerState.NORMAL;
-				}
-				if(Input.IsActionJustPressed("move_jump"))
-				{
-					velocity.X = Speed * WallJumpMultiplier.X;
-					velocity.Y = JumpVelocity * WallJumpMultiplier.Y;
-					if(Math.Sign(GetWallNormal().X) < 0) velocity.X = -velocity.X; // Flip Jump in case of opposite wall
-				}
-			}
-
-
+			velocity = HandleWallMovement(velocity);
 		}
 		// Apply all previous changes (after override)
 		Velocity = velocity;
@@ -201,6 +176,44 @@ public partial class Player : CharacterBody2D
 			velocityY = JumpVelocity * JumpStopMultiplier;
 		}
 		return velocityY;
+	}
+
+	// Returns the updated velocity after wall overwrites.
+	private Vector2 HandleWallMovement(Vector2 velocity)
+	{
+		stopFling();
+
+		float dir = Math.Sign(velocity.X);
+		float wallNormal = Math.Sign(GetWallNormal().X);
+		bool isWallSliding = dir != wallNormal && dir != 0; // If player is moving towards a wall.
+			
+		// Balls can't slide off walls
+		if(playerState != PlayerState.BALL)
+		{	
+			// Enable slide
+			if(isWallSliding && WallSlideAbility)
+			{
+				playerState = PlayerState.SLIDE;
+				velocity.Y = WallSlideSpeed;
+				
+				// Wall jump
+				if(Input.IsActionJustPressed("move_jump"))
+				{
+					playerState = PlayerState.NORMAL;
+
+					velocity.X = Speed * WallJumpMultiplier.X;
+					velocity.Y = JumpVelocity * WallJumpMultiplier.Y;
+					if(wallNormal < 0) velocity.X = -velocity.X; // Flip Jump in case of opposite wall
+				}
+			}
+			// Disable slide
+			else
+			{
+				playerState = PlayerState.NORMAL;
+			}
+		}
+
+		return velocity;
 	}
 
 	private void BallMovementOverride(double delta)
