@@ -40,74 +40,38 @@ public partial class Player : CharacterBody2D
 
 	private PlayerAnimationManager playerAnimatedSprite;
 
-	// Handling piping mechanic
-	public void _on_pipe_fling(Vector2 flingVelocity, float launchPeriod, Vector2 targetPos)
-	{
-		Position = targetPos;
-		LastFlingDir = Math.Sign(flingVelocity.X);
-		Velocity = flingVelocity;
-		IsBeingFlung = true;
-		IsBeingFlungLaunchPeriod = launchPeriod;
-	}
 	public override void _Ready()
 	{
 		playerAnimatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D") as PlayerAnimationManager; // Importing custom script.
 	}
-	public override void _Process(double delta)
-	{	
-		// Activate and disenagage balling mechanic
-		if (BallAbility){
-			if (Input.IsActionPressed("ball_up"))
-			{
-				playerState = PlayerState.BALL;
-			} 
-			else if (Input.IsActionJustReleased("ball_up"))
-			{
-				if ( IsOnFloor() )
-				{
-					Vector2 velocity = Velocity;
-					velocity.Y = JumpVelocity * BallBounceMultiplier;
-					Velocity = velocity;
-				}
-				
-				playerState = PlayerState.NORMAL;
-			}
-		}
-	}
-
 
 	public override void _PhysicsProcess(double delta)
 	{
-		IsBeingFlungLaunchPeriod -= (float)delta;
+		IsBeingFlungLaunchPeriod -= (float)delta; // Counting down timer.
 
-		BasicMovement(delta);
+		BaseMovement(delta);
+		if (playerState == PlayerState.BALL) BallMovementOverride(delta);
+		if (playerState == PlayerState.SLIDE) SlideMovementOverride();
 
-		if (playerState == PlayerState.BALL)
-		{
-			BallMovementOverride(delta);
-		}
+		// After calculating physics for current frame, Use them to re-evaluate state for next frame. 
+		playerState = EvaluatePlayerState();
+
 		// Built-In function to move the player
 		MoveAndSlide();
 	}
 
-	private void BasicMovement(double delta)
+	private void BaseMovement(double delta)
 	{
 		Vector2 velocity = Velocity;
 		// Move regularly unless just flung
-		if(IsBeingFlungLaunchPeriod <=0)
+		if(IsBeingFlungLaunchPeriod <= 0)
 		{
-		velocity.X = HandleXMovement();
-		velocity.Y = HandleYMovement(delta);
+			velocity.X = HandleXMovement();
+			velocity.Y = HandleYMovement(delta);
 		}
 
-		// Handle Wall jump and slide movement overrides
-		if(IsOnWall())
-		{
-			velocity = HandleWallMovement(velocity);
-		}
 		// Apply all previous changes (after override)
 		Velocity = velocity;
-	
 	}
 
 	private float HandleXMovement(){
@@ -178,56 +142,6 @@ public partial class Player : CharacterBody2D
 		return velocityY;
 	}
 
-	// Returns the updated velocity after wall overwrites.
-	private Vector2 HandleWallMovement(Vector2 velocity)
-	{
-		stopFling();
-
-		float dir = Math.Sign(velocity.X);
-		float wallNormal = Math.Sign(GetWallNormal().X);
-		bool isWallSliding = dir != wallNormal && dir != 0; // If player is moving towards a wall.
-			
-		// Balls can't slide off walls
-		if(playerState != PlayerState.BALL)
-		{	
-			// Enable slide
-			if(isWallSliding && WallSlideAbility)
-			{
-				playerState = PlayerState.SLIDE;
-				velocity.Y = WallSlideSpeed;
-				
-				// Wall jump
-				if(Input.IsActionJustPressed("move_jump"))
-				{
-					playerState = PlayerState.NORMAL;
-
-					velocity.X = Speed * WallJumpMultiplier.X;
-					velocity.Y = JumpVelocity * WallJumpMultiplier.Y;
-					if(wallNormal < 0) velocity.X = -velocity.X; // Flip Jump in case of opposite wall
-				}
-			}
-			// Disable slide
-			else
-			{
-				playerState = PlayerState.NORMAL;
-			}
-		}
-
-		return velocity;
-	}
-
-	private void BallMovementOverride(double delta)
-	{	
-			Vector2 velocity = Velocity;
-
-			if ( Input.IsActionJustPressed("move_jump") && IsOnFloor() )
-			{
-				velocity.Y = JumpVelocity * BallBounceMultiplier;
-			}
-
-			Velocity = velocity;
-	}
-
 	// Returns direction in x axis, -1/0/1.
 	private float GetWalkDirectionX()
 	{
@@ -254,6 +168,106 @@ public partial class Player : CharacterBody2D
 		}
 
 		return directionX;
+	}
+
+
+	// Override Base Movement when playerState==SLIDE.
+	private void SlideMovementOverride()
+	{	
+		Vector2 velocity = Velocity;
+		stopFling();
+
+		float wallNormal = Math.Sign(GetWallNormal().X);
+			
+		velocity.Y = WallSlideSpeed;
+			
+		// Wall jump
+		if(Input.IsActionJustPressed("move_jump"))
+		{
+			velocity.X = Speed * WallJumpMultiplier.X;
+			velocity.Y = JumpVelocity * WallJumpMultiplier.Y;
+			if(wallNormal < 0) velocity.X = -velocity.X; // Flip Jump in case of opposite wall
+		}
+
+		Velocity = velocity;
+	}
+
+	// Override Base Movement when playerState==BALL.
+	private void BallMovementOverride(double delta)
+	{	
+			Vector2 velocity = Velocity;
+
+			if ( Input.IsActionJustPressed("move_jump") && IsOnFloor() )
+			{
+				velocity.Y = JumpVelocity * BallBounceMultiplier;
+			}
+			// Little bounce when exiting BALL state.
+			if (Input.IsActionJustReleased("ball_up") && IsOnFloor())
+			{
+				velocity.Y = JumpVelocity * BallBounceMultiplier;
+				Velocity = velocity;
+			}
+
+			Velocity = velocity;
+	}
+
+	// Use the physics calculated this frame to re-evaluate state for next frame.*
+	private PlayerState EvaluatePlayerState()
+	{
+		Vector2 velocity = Velocity;
+
+		// Handling BALL state.
+		if (BallAbility){
+			if (Input.IsActionPressed("ball_up"))
+			{
+				return PlayerState.BALL;
+			} 
+			else if (Input.IsActionJustReleased("ball_up"))
+			{
+				return PlayerState.NORMAL;
+			}
+		}
+
+		// Handling SLIDE state.
+		if (WallSlideAbility && IsOnWall()){
+
+			float dir = Math.Sign(velocity.X);
+			float wallNormal = Math.Sign(GetWallNormal().X);
+			bool isWallSliding = dir != wallNormal && dir != 0; // If player is moving towards a wall.
+
+			// Balls can't slide off walls
+			if(playerState != PlayerState.BALL)
+			{	
+				// Enable slide
+				if(isWallSliding)
+				{	
+					// Wall jump resets state
+					if(Input.IsActionJustPressed("move_jump"))
+					{
+						return PlayerState.NORMAL;
+					} 
+					return PlayerState.SLIDE;
+				}
+				// Disable slide
+				else
+				{
+					return PlayerState.NORMAL;
+				}
+			}
+		}
+	
+		return PlayerState.NORMAL;
+	}
+
+
+	// Handling piping mechanic
+	public void _on_pipe_fling(Vector2 flingVelocity, float launchPeriod, Vector2 targetPos)
+	{
+		Position = targetPos;
+		LastFlingDir = Math.Sign(flingVelocity.X);
+		Velocity = flingVelocity;
+		IsBeingFlung = true;
+		IsBeingFlungLaunchPeriod = launchPeriod;
 	}
 
 	public void stopFling()
