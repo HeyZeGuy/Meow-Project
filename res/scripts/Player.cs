@@ -261,7 +261,7 @@ public partial class Player : CharacterBody2D
 
 
 	// Handling piping mechanic
-	public void _on_pipe_fling(Vector2 flingVelocity, float launchPeriod, Vector2 targetPos)
+	public void _on_fling(Vector2 flingVelocity, float launchPeriod, Vector2 targetPos)
 	{
 		Position = targetPos;
 		LastFlingDir = Math.Sign(flingVelocity.X);

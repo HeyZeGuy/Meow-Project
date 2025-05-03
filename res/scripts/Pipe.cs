@@ -34,9 +34,9 @@ public partial class Pipe : StaticBody2D
 				Vector2 targetPos = Target.Position + new Vector2(0, -Target.ExitSpawnDistance).Rotated(Target.Rotation);
 
 				// Connect only the current player's handler to the signal to avoid both players teleporting
-				Fling += player._on_pipe_fling;
+				Fling += player._on_fling;
 				EmitSignal(SignalName.Fling, flingVelocity,IsBeingFlungLaunchPeriod, targetPos);
-				Fling -= player._on_pipe_fling;
+				Fling -= player._on_fling;
 			
 				await ToSignal(GetTree().CreateTimer(.25), SceneTreeTimer.SignalName.Timeout);
 
