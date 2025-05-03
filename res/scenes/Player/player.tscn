@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://djyh54dm6h4jm"]
+[gd_scene load_steps=27 format=3 uid="uid://djyh54dm6h4jm"]
 
 [ext_resource type="Script" uid="uid://cxc8r03mdahbd" path="res://scripts/Player.cs" id="1_3vyb7"]
 [ext_resource type="Texture2D" uid="uid://bo87qmpp1lfmv" path="res://assets/sprites/cat_spritemap_temp.png" id="2_g2els"]
@@ -79,6 +79,14 @@ region = Rect2(32, 192, 32, 32)
 [sub_resource type="AtlasTexture" id="AtlasTexture_3v2ag"]
 atlas = ExtResource("2_g2els")
 region = Rect2(64, 192, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c4h5g"]
+atlas = ExtResource("2_g2els")
+region = Rect2(96, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uiqp4"]
+atlas = ExtResource("2_g2els")
+region = Rect2(32, 64, 32, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_jej6c"]
 animations = [{
@@ -168,6 +176,17 @@ animations = [{
 "loop": false,
 "name": &"stretch",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c4h5g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uiqp4")
+}],
+"loop": true,
+"name": &"wall_slide",
+"speed": 5.0
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_u8vuu"]
@@ -182,7 +201,7 @@ metadata/_edit_group_ = true
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -7)
 sprite_frames = SubResource("SpriteFrames_jej6c")
-animation = &"run"
+animation = &"wall_slide"
 autoplay = "idle"
 script = ExtResource("3_gqjuk")
 
