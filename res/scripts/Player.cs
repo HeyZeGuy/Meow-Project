@@ -29,7 +29,7 @@ public partial class Player : CharacterBody2D
 	// Ability Related vars
 	[Export] public float BallBounceMultiplier = 0.5f;
 	[Export] public float WallSlideSpeed = 100f;
-	[Export] public Vector2 WallJumpMultiplier = new Vector2(2, 0.75f);
+	[Export] public Vector2 WallJumpMultiplier = new Vector2(1.5f, 0.6f); // The X value will be multiplied by Speed and the Y value by the JumpVelocity to determine the wall jump vector
 	// Pipe fling related vars
 	private bool IsBeingFlung = false;
 	private float IsBeingFlungLaunchPeriod = 0f; // Wait this time before the player can control & 'IsBeingFlung' can be disabled - set this from the launching scene.
@@ -184,9 +184,12 @@ public partial class Player : CharacterBody2D
 		// Wall jump
 		if(Input.IsActionJustPressed("move_jump"))
 		{
-			velocity.X = Speed * WallJumpMultiplier.X;
-			velocity.Y = JumpVelocity * WallJumpMultiplier.Y;
-			if(wallNormal < 0) velocity.X = -velocity.X; // Flip Jump in case of opposite wall
+			Vector2 WallJump = Vector2.Zero;
+			WallJump.X = Speed * WallJumpMultiplier.X;
+			WallJump.Y = JumpVelocity * WallJumpMultiplier.Y;
+			if(wallNormal < 0) WallJump.X = -WallJump.X; // Flip Jump in case of opposite wall
+			_on_fling(WallJump, 0.1f);
+			return;
 		}
 
 		Velocity = velocity;
@@ -229,7 +232,7 @@ public partial class Player : CharacterBody2D
 		}
 
 		// Handling SLIDE state.
-		if (WallSlideAbility && IsOnWall()){
+		if (WallSlideAbility && IsOnWall() && !IsOnFloor()){
 
 			float dir = Math.Sign(velocity.X);
 			float wallNormal = Math.Sign(GetWallNormal().X);
@@ -261,9 +264,9 @@ public partial class Player : CharacterBody2D
 
 
 	// Handling piping mechanic
-	public void _on_fling(Vector2 flingVelocity, float launchPeriod, Vector2 targetPos)
+	public void _on_fling(Vector2 flingVelocity, float launchPeriod, Vector2 targetPos = new Vector2())
 	{
-		Position = targetPos;
+		if(!targetPos.Equals(new Vector2())) Position = targetPos;
 		LastFlingDir = Math.Sign(flingVelocity.X);
 		Velocity = flingVelocity;
 		IsBeingFlung = true;
