@@ -29,7 +29,7 @@ public partial class Player : CharacterBody2D
 	// Ability Related vars
 	[Export] public float BallBounceMultiplier = 0.5f;
 	[Export] public float WallSlideSpeed = 100f;
-	[Export] public Vector2 WallJumpMultiplier = new Vector2(1.5f, 0.6f); // The X value will be multiplied by Speed and the Y value by the JumpVelocity to determine the wall jump vector
+	[Export] public Vector2 WallJumpMultiplier = new Vector2(1.55f, 0.6f); // The X value will be multiplied by Speed and the Y value by the JumpVelocity to determine the wall jump vector
 	// Pipe fling related vars
 	private bool IsBeingFlung = false;
 	private float IsBeingFlungLaunchPeriod = 0f; // Wait this time before the player can control & 'IsBeingFlung' can be disabled - set this from the launching scene.
