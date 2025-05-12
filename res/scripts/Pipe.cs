@@ -16,24 +16,31 @@ public partial class Pipe : StaticBody2D
 	
 	public List<Node2D> IgnoreBodies = [];
 
+	[Signal]
+	public delegate void FlingEventHandler(Vector2 flingVelocity, float launchPeriod, Vector2 targetPos);
+
 	// Teleports player to the target pipe.
 	async public void _on_action_area_body_entered(Node2D body)
 	{
 		if (body is Player && !IgnoreBodies.Contains(body)){
-			Player Player = (Player)body;
+			Player player = body as Player;
 
-			// if ( Player.playerState == Player.PlayerState.BALL )
+			// Only balls can enter pipes
+			// if ( player.playerState == Player.PlayerState.BALL )
 			// {
-			Target.IgnoreBodies.Add(body);
+				Target.IgnoreBodies.Add(body);
+				
+				Vector2 flingVelocity = new Vector2(0, -Target.ExitVelocity - (Target.XAxisExtraStrength * Mathf.Sin(Target.Rotation) )).Rotated(Target.Rotation);
+				Vector2 targetPos = Target.Position + new Vector2(0, -Target.ExitSpawnDistance).Rotated(Target.Rotation);
+
+				// Connect only the current player's handler to the signal to avoid both players teleporting
+				Fling += player._on_fling;
+				EmitSignal(SignalName.Fling, flingVelocity,IsBeingFlungLaunchPeriod, targetPos);
+				Fling -= player._on_fling;
 			
-			Player.IsBeingFlung = true;
-			Player.IsBeingFlungLaunchPeriod = IsBeingFlungLaunchPeriod;
-			Player.Velocity = new Vector2(0, -ExitVelocity - (XAxisExtraStrength * Mathf.Sin(Target.Rotation) )).Rotated(Target.Rotation);
-			Player.Position = Target.Position + new Vector2(0, -ExitSpawnDistance).Rotated(Target.Rotation);
+				await ToSignal(GetTree().CreateTimer(.25), SceneTreeTimer.SignalName.Timeout);
 
-			await ToSignal(GetTree().CreateTimer(.25), SceneTreeTimer.SignalName.Timeout);
-
-			Target.IgnoreBodies.Remove(body);
+				Target.IgnoreBodies.Remove(body);
 			// }
 			
 		}
